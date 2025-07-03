@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TCPA Violation Evaluator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .question-container {
+            display: none;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .question-container.active {
+            display: block;
+        }
+
+        .question-number {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 0 auto 20px;
+        }
+
+        .question-text {
+            font-size: 1.3rem;
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+            line-height: 1.6;
+            font-weight: 500;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 120px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-yes {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+        }
+
+        .btn-yes:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(39, 174, 96, 0.3);
+        }
+
+        .btn-no {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+        }
+
+        .btn-no:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(231, 76, 60, 0.3);
+        }
+
+        .btn-restart {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+            margin-top: 20px;
+        }
+
+        .btn-restart:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(243, 156, 18, 0.3);
+        }
+
+        .result {
+            text-align: center;
+            padding: 30px;
+            border-radius: 15px;
+            margin-top: 20px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            line-height: 1.6;
+        }
+
+        .result.violation {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+        }
+
+        .result.no-violation {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+        }
+
+        .result.exception {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+        }
+
+        .result.not-covered {
+            background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+            color: white;
+        }
+
+        .result.standing {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+            color: white;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #ecf0f1;
+            border-radius: 4px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .explanation {
+            background: #f8f9fa;
+            border-left: 4px solid #3498db;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 0 10px 10px 0;
+            font-size: 1rem;
+            line-height: 1.6;
+            color: #2c3e50;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+
+            .header {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            .question-text {
+                font-size: 1.1rem;
+            }
+
+            .button-group {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .btn {
+                width: 100%;
+                max-width: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>TCPA Violation Evaluator</h1>
+            <p>Telephone Consumer Protection Act (47 U.S.C. § 227(b)(1)(A)(iii))</p>
+        </div>
+
+        <div class="content">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+
+            <!-- Question 1 -->
+            <div class="question-container active" id="question1">
+                <div class="question-number">1</div>
+                <div class="question-text">Was there a call or text?</div>
+                <div class="button-group">
+                    <button class="btn btn-yes" onclick="answerQuestion(1, true)">Yes</button>
+                    <button class="btn btn-no" onclick="answerQuestion(1, false)">No</button>
+                </div>
+            </div>
+
+            <!-- Question 2 -->
+            <div class="question-container" id="question2">
+                <div class="question-number">2</div>
+                <div class="question-text">Was the call/text sent to a cell phone number?</div>
+                <div class="button-group">
+                    <button class="btn btn-yes" onclick="answerQuestion(2, true)">Yes</button>
+                    <button class="btn btn-no" onclick="answerQuestion(2, false)">No</button>
+                </div>
+            </div>
+
+            <!-- Question 3 -->
+            <div class="question-container" id="question3">
+                <div class="question-number">3</div>
+                <div class="question-text">Did the caller use an automatic telephone dialing system (ATDS) OR an artificial/prerecorded voice?</div>
+                <div class="button-group">
+                    <button class="btn btn-yes" onclick="answerQuestion(3, true)">Yes</button>
+                    <button class="btn btn-no" onclick="answerQuestion(3, false)">No</button>
+                </div>
+            </div>
+
+            <!-- Question 4 -->
+            <div class="question-container" id="question4">
+                <div class="question-number">4</div>
+                <div class="question-text">Was the call made for emergency purposes?</div>
+                <div class="button-group">
+                    <button class="btn btn-yes" onclick="answerQuestion(4, true)">Yes</button>
+                    <button class="btn btn-no" onclick="answerQuestion(4, false)">No</button>
+                </div>
+            </div>
+
+            <!-- Question 5 -->
+            <div class="question-container" id="question5">
+                <div class="question-number">5</div>
+                <div class="question-text">Did the called party give prior express consent for that call/text?</div>
+                <div class="button-group">
+                    <button class="btn btn-yes" onclick="answerQuestion(5, true)">Yes</button>
+                    <button class="btn btn-no" onclick="answerQuestion(5, false)">No</button>
+                </div>
+            </div>
+
+            <!-- Question 6 -->
+            <div class="question-container" id="question6">
+                <div class="question-number">6</div>
+                <div class="question-text">Is the plaintiff the subscriber or regular user of the number called?</div>
+                <div class="button-group">
+                    <button class="btn btn-yes" onclick="answerQuestion(6, true)">Yes</button>
+                    <button class="btn btn-no" onclick="answerQuestion(6, false)">No</button>
+                </div>
+            </div>
+
+            <!-- Results -->
+            <div class="question-container" id="result">
+                <div class="question-number">✓</div>
+                <div class="result" id="resultContent"></div>
+                <div class="explanation" id="resultExplanation"></div>
+                <div class="button-group">
+                    <button class="btn btn-restart" onclick="restartEvaluation()">Start New Evaluation</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentQuestion = 1;
+        const totalQuestions = 6;
+        const answers = {};
+
+        function updateProgress() {
+            const progress = ((currentQuestion - 1) / totalQuestions) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+        }
+
+        function showQuestion(questionNumber) {
+            // Hide all questions
+            for (let i = 1; i <= totalQuestions; i++) {
+                document.getElementById(`question${i}`).classList.remove('active');
+            }
+            document.getElementById('result').classList.remove('active');
+
+            // Show current question
+            if (questionNumber <= totalQuestions) {
+                document.getElementById(`question${questionNumber}`).classList.add('active');
+            } else {
+                document.getElementById('result').classList.add('active');
+            }
+
+            updateProgress();
+        }
+
+        function answerQuestion(questionNumber, answer) {
+            answers[questionNumber] = answer;
+            currentQuestion = questionNumber + 1;
+
+            // Determine next step based on current question and answer
+            let nextStep = currentQuestion;
+
+            if (questionNumber === 1 && !answer) {
+                // No call/text - No violation
+                showResult('no-violation', 'No Violation', 'No call or text occurred, so there can be no TCPA violation.');
+            } else if (questionNumber === 2 && !answer) {
+                // Not a cell phone - Not covered
+                showResult('not-covered', 'Not Covered Under This Subsection', 'The TCPA subsection 227(b)(1)(A)(iii) specifically applies to calls to cell phones. Landline calls are covered under different provisions.');
+            } else if (questionNumber === 3 && !answer) {
+                // No ATDS or prerecorded voice - Not covered
+                showResult('not-covered', 'Not Covered Under This Subsection', 'This subsection requires the use of an automatic telephone dialing system (ATDS) or artificial/prerecorded voice. Manual calls are not covered.');
+            } else if (questionNumber === 4 && answer) {
+                // Emergency purposes - Exception
+                showResult('exception', 'Exception - No Violation', 'Emergency calls are exempt from TCPA restrictions under 47 U.S.C. § 227(b)(1)(A).');
+            } else if (questionNumber === 5 && answer) {
+                // Prior express consent - Exception
+                showResult('exception', 'Exception - No Violation', 'Prior express consent is a complete defense to TCPA liability under 47 U.S.C. § 227(b)(1)(A).');
+            } else if (questionNumber === 6) {
+                if (answer) {
+                    // Violation established
+                    showResult('violation', 'Violation Established', 'All elements of a TCPA violation under 47 U.S.C. § 227(b)(1)(A)(iii) have been met. The caller likely violated the TCPA.');
+                } else {
+                    // Standing issue
+                    showResult('standing', 'Might Not Have Standing', 'The plaintiff may not have standing to sue under the TCPA. Only the subscriber or regular user of the called number has standing to bring a TCPA claim.');
+                }
+            } else {
+                // Continue to next question
+                showQuestion(nextStep);
+            }
+        }
+
+        function showResult(resultType, title, explanation) {
+            currentQuestion = totalQuestions + 1;
+            showQuestion(currentQuestion);
+            
+            const resultContent = document.getElementById('resultContent');
+            const resultExplanation = document.getElementById('resultExplanation');
+            
+            resultContent.className = `result ${resultType}`;
+            resultContent.textContent = title;
+            resultExplanation.textContent = explanation;
+        }
+
+        function restartEvaluation() {
+            currentQuestion = 1;
+            answers = {};
+            showQuestion(1);
+        }
+
+        // Initialize
+        updateProgress();
+    </script>
+</body>
+</html> 
