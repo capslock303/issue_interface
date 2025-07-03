@@ -64,6 +64,35 @@ This tool is based on **47 U.S.C. § 227(b)(1)(A)(iii)**, which prohibits:
 - **Not Covered Under This Subsection**: Landline calls or manual dialing
 - **Might Not Have Standing**: Plaintiff may lack standing to sue
 
+## Post-Violation Evidence & Do Not Call Registry Flow
+
+If a TCPA violation is established, the interface will guide you through additional steps to help gather evidence and verify your registration on the National Do Not Call Registry:
+
+### Step 1: Call Log Screenshot
+- **Prompt:** "Your cell phone often has a log of recent calls. Can you find the call in your call logs and take a screenshot?"
+- **Buttons:**
+  - **No, Skip:** Proceed to the next step.
+  - **Upload Screenshot:** Opens a file dialog to attach your screenshot (uploads are placeholders unless Google Drive integration is implemented).
+
+### Step 2: Cell Phone Bill
+- **Prompt:** "Can you upload a copy of your most recent cell phone bill?"
+- **Buttons:**
+  - **No, Skip:** Proceed to the Do Not Call Registry step.
+  - **Upload Bill:** Opens a file dialog to attach your bill (uploads are placeholders).
+
+### Step 3: Do Not Call Registry
+- **Prompt:** "Are you registered on the National Do Not Call Registry?"
+- **Buttons:**
+  - **Yes:**
+    - Next prompt: "We would like to help you verify your registration. Ready?"
+    - **Proceed:** Opens [https://www.donotcall.gov/verify.html](https://www.donotcall.gov/verify.html) in a new tab.
+  - **No:**
+    - Next prompt: "Would you like to sign up now?"
+    - **Yes, Sign Up:** Opens [https://www.donotcall.gov](https://www.donotcall.gov) in a new tab.
+    - **No:** Shows a final page: "Thank you. A representative will follow up soon."
+
+**Note:** File uploads are currently placeholders. Actual Google Drive integration would require additional backend and authentication setup.
+
 ## Technical Details
 
 - **Pure HTML/CSS/JavaScript**: No external dependencies required
