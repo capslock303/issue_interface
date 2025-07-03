@@ -4,7 +4,7 @@ A comprehensive web-based interface for evaluating potential violations of the T
 
 ## Overview
 
-This tool provides an interactive, step-by-step evaluation process to determine whether a TCPA violation has occurred. It guides users through a series of yes/no questions based on the legal requirements of the TCPA.
+This tool provides an interactive, step-by-step evaluation process to determine whether a TCPA violation has occurred. It guides users through a series of user-friendly yes/no questions based on the legal requirements of the TCPA, making complex legal concepts accessible to everyone.
 
 ## Features
 
@@ -26,15 +26,15 @@ This tool provides an interactive, step-by-step evaluation process to determine 
 
 The evaluation follows this exact sequence:
 
-### 1. Was there a call or text?
+### 1. Did you receive a call or text from a number you did not recognize?
 - **Yes** → Continue to question 2
 - **No** → No violation (no call/text occurred)
 
-### 2. Was the call/text sent to a cell phone number?
+### 2. Was the call/text on your personal phone number?
 - **Yes** → Continue to question 3
 - **No** → Not covered under this subsection (landline calls covered under different provisions)
 
-### 3. Did the caller use an automatic telephone dialing system (ATDS) OR an artificial/prerecorded voice?
+### 3. Did the caller use an artificial or prerecorded voice?
 - **Yes** → Continue to question 4
 - **No** → Not covered under this subsection (manual calls not covered)
 
@@ -42,11 +42,11 @@ The evaluation follows this exact sequence:
 - **Yes** → Exception - No violation (emergency calls exempt)
 - **No** → Continue to question 5
 
-### 5. Did the called party give prior express consent for that call/text?
+### 5. Had you previously given consent to receive the call/text?
 - **Yes** → Exception - No violation (consent is complete defense)
 - **No** → Continue to question 6
 
-### 6. Is the plaintiff the subscriber or regular user of the number called?
+### 6. Are you the person listed as the regular user of the phone number that was called?
 - **Yes** → Violation established (all elements met)
 - **No** → Might not have standing (standing issue)
 
