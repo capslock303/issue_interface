@@ -324,15 +324,79 @@
                     <button class="btn btn-restart" onclick="restartEvaluation()">Start New Evaluation</button>
                 </div>
             </div>
+
+            <!-- Evidence Step 1: Call Log Screenshot -->
+            <div class="question-container" id="evidence1">
+                <div class="question-number">E1</div>
+                <div class="question-text">Your cell phone often has a log of recent calls. Can you find the call in your call logs and take a screenshot?</div>
+                <div class="button-group">
+                    <button class="btn btn-no" onclick="skipEvidence1()">No, Skip</button>
+                    <label class="btn btn-yes" style="margin-bottom:0;">
+                        Upload Screenshot
+                        <input type="file" accept="image/*" style="display:none;" onchange="uploadEvidence1(event)">
+                    </label>
+                </div>
+                <div id="evidence1Status" style="text-align:center;margin-top:10px;"></div>
+            </div>
+
+            <!-- Evidence Step 2: Cell Phone Bill -->
+            <div class="question-container" id="evidence2">
+                <div class="question-number">E2</div>
+                <div class="question-text">Can you upload a copy of your most recent cell phone bill?</div>
+                <div class="button-group">
+                    <button class="btn btn-no" onclick="skipEvidence2()">No, Skip</button>
+                    <label class="btn btn-yes" style="margin-bottom:0;">
+                        Upload Bill
+                        <input type="file" accept="application/pdf,image/*" style="display:none;" onchange="uploadEvidence2(event)">
+                    </label>
+                </div>
+                <div id="evidence2Status" style="text-align:center;margin-top:10px;"></div>
+            </div>
+
+            <!-- Do Not Call Registry Step 3 -->
+            <div class="question-container" id="dnc1">
+                <div class="question-number">DNC</div>
+                <div class="question-text">Are you registered on the National Do Not Call Registry?</div>
+                <div class="button-group">
+                    <button class="btn btn-yes" onclick="dncRegistered(true)">Yes</button>
+                    <button class="btn btn-no" onclick="dncRegistered(false)">No</button>
+                </div>
+            </div>
+
+            <!-- DNC: Not Registered, Offer Signup -->
+            <div class="question-container" id="dnc2">
+                <div class="question-number">DNC</div>
+                <div class="question-text">Would you like to sign up now?</div>
+                <div class="button-group">
+                    <button class="btn btn-yes" onclick="window.open('https://www.donotcall.gov','_blank')">Yes, Sign Up</button>
+                    <button class="btn btn-no" onclick="dncNoSignup()">No</button>
+                </div>
+            </div>
+
+            <!-- DNC: Not Registered, No Signup -->
+            <div class="question-container" id="dnc3">
+                <div class="question-number">✓</div>
+                <div class="result standing">Thank you. A representative will follow up soon.</div>
+            </div>
+
+            <!-- DNC: Registered, Verify -->
+            <div class="question-container" id="dnc4">
+                <div class="question-number">DNC</div>
+                <div class="question-text">We would like to help you verify your registration. Ready?</div>
+                <div class="button-group">
+                    <button class="btn btn-yes" onclick="window.open('https://www.donotcall.gov/verify.html','_blank')">Proceed</button>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
         let currentQuestion = 1;
         const totalQuestions = 6;
-        const answers = {};
+        let answers = {};
 
         function updateProgress() {
+            // Only show progress for the main 6 questions
             const progress = ((currentQuestion - 1) / totalQuestions) * 100;
             document.getElementById('progressFill').style.width = progress + '%';
         }
@@ -342,13 +406,28 @@
             for (let i = 1; i <= totalQuestions; i++) {
                 document.getElementById(`question${i}`).classList.remove('active');
             }
-            document.getElementById('result').classList.remove('active');
+            ["result","evidence1","evidence2","dnc1","dnc2","dnc3","dnc4"].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.classList.remove('active');
+            });
 
             // Show current question
             if (questionNumber <= totalQuestions) {
                 document.getElementById(`question${questionNumber}`).classList.add('active');
-            } else {
+            } else if (questionNumber === totalQuestions + 1) {
                 document.getElementById('result').classList.add('active');
+            } else if (questionNumber === 'evidence1') {
+                document.getElementById('evidence1').classList.add('active');
+            } else if (questionNumber === 'evidence2') {
+                document.getElementById('evidence2').classList.add('active');
+            } else if (questionNumber === 'dnc1') {
+                document.getElementById('dnc1').classList.add('active');
+            } else if (questionNumber === 'dnc2') {
+                document.getElementById('dnc2').classList.add('active');
+            } else if (questionNumber === 'dnc3') {
+                document.getElementById('dnc3').classList.add('active');
+            } else if (questionNumber === 'dnc4') {
+                document.getElementById('dnc4').classList.add('active');
             }
 
             updateProgress();
@@ -378,8 +457,8 @@
                 showResult('exception', 'Exception - No Violation', 'Prior express consent is a complete defense to TCPA liability under 47 U.S.C. § 227(b)(1)(A).');
             } else if (questionNumber === 6) {
                 if (answer) {
-                    // Violation established
-                    showResult('violation', 'Violation Established', 'All elements of a TCPA violation under 47 U.S.C. § 227(b)(1)(A)(iii) have been met. The caller likely violated the TCPA.');
+                    // Violation established: go to evidence flow
+                    showQuestion('evidence1');
                 } else {
                     // Standing issue
                     showResult('standing', 'Might Not Have Standing', 'The plaintiff may not have standing to sue under the TCPA. Only the subscriber or regular user of the called number has standing to bring a TCPA claim.');
@@ -393,10 +472,8 @@
         function showResult(resultType, title, explanation) {
             currentQuestion = totalQuestions + 1;
             showQuestion(currentQuestion);
-            
             const resultContent = document.getElementById('resultContent');
             const resultExplanation = document.getElementById('resultExplanation');
-            
             resultContent.className = `result ${resultType}`;
             resultContent.textContent = title;
             resultExplanation.textContent = explanation;
@@ -406,6 +483,51 @@
             currentQuestion = 1;
             answers = {};
             showQuestion(1);
+            // Clear evidence status
+            document.getElementById('evidence1Status').textContent = '';
+            document.getElementById('evidence2Status').textContent = '';
+        }
+
+        // Evidence Step 1: Call Log Screenshot
+        function skipEvidence1() {
+            showQuestion('evidence2');
+        }
+        function uploadEvidence1(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            // Placeholder for Google Drive upload logic
+            document.getElementById('evidence1Status').textContent = 'Uploading...';
+            setTimeout(() => {
+                document.getElementById('evidence1Status').textContent = 'Screenshot uploaded!';
+                showQuestion('evidence2');
+            }, 1200);
+        }
+
+        // Evidence Step 2: Cell Phone Bill
+        function skipEvidence2() {
+            showQuestion('dnc1');
+        }
+        function uploadEvidence2(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            // Placeholder for Google Drive upload logic
+            document.getElementById('evidence2Status').textContent = 'Uploading...';
+            setTimeout(() => {
+                document.getElementById('evidence2Status').textContent = 'Bill uploaded!';
+                showQuestion('dnc1');
+            }, 1200);
+        }
+
+        // DNC Registry Step
+        function dncRegistered(isRegistered) {
+            if (isRegistered) {
+                showQuestion('dnc4');
+            } else {
+                showQuestion('dnc2');
+            }
+        }
+        function dncNoSignup() {
+            showQuestion('dnc3');
         }
 
         // Initialize
